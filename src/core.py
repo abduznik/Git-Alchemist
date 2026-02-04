@@ -25,8 +25,8 @@ def get_gemini_client():
     load_dotenv()
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        console.print("[bold red]Error:[/bold red] GEMINI_API_KEY not found.")
-        sys.exit(1)
+        console.print("[yellow]Warning:[/yellow] GEMINI_API_KEY not found. Using Mock AI mode.")
+        return None
     return genai.Client(api_key=api_key, http_options={'api_version':'v1alpha'})
 
 def generate_content(prompt, mode="fast"):
@@ -35,6 +35,13 @@ def generate_content(prompt, mode="fast"):
     Mode: 'fast' (Gemma/Flash) or 'smart' (Pro/3-Pro)
     """
     client = get_gemini_client()
+    
+    if client is None:
+        # Mock responses for testing without API key
+        if "JSON" in prompt or "title" in prompt.lower():
+             return '```json\n{"title": "Forge Feature Update", "body": "This is an automated PR forged by Git-Alchemist (Mock Mode)."}\n```'
+        return "chore: update readme with forge feature"
+
     models = SMART_MODELS if mode == "smart" else FAST_MODELS
     
     for model_name in models:

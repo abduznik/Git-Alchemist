@@ -17,6 +17,7 @@
 *   **Gold Score Audit:** Measure your repository's professional quality and health.
 *   **The Sage:** Contextual codebase chat to answer deep technical questions about your code.
 *   **Commit Alchemist:** Automated semantic commit message suggestions from staged changes.
+*   **Forge:** Automated PR creation from local changes.
 
 ## Model Tiers
 
