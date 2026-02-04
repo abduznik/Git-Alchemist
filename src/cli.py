@@ -7,6 +7,7 @@ from .repo_tools import optimize_topics, generate_descriptions
 from .issue_gen import create_issue
 from .audit import run_audit
 from .sage import ask_sage
+from .committer import suggest_commits
 
 console = Console()
 
@@ -15,6 +16,9 @@ def main():
     parser.add_argument("--smart", action="store_true", help="Use high-end Gemini Pro models (slower/lower quota)")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
+    # Commit Command
+    commit_parser = subparsers.add_parser("commit", help="Generate semantic commit messages from changes")
+
     # Sage Command
     sage_parser = subparsers.add_parser("sage", help="Ask the Sage questions about your codebase")
     sage_parser.add_argument("question", help="The question about your code")
@@ -71,6 +75,8 @@ def main():
         run_audit(repo_name=args.repo)
     elif args.command == "sage":
         ask_sage(args.question, mode=mode)
+    elif args.command == "commit":
+        suggest_commits(mode=mode)
     else:
         parser.print_help()
 
