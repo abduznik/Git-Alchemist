@@ -6,6 +6,7 @@ from .architect import scaffold_project, fix_code, explain_code
 from .repo_tools import optimize_topics, generate_descriptions
 from .issue_gen import create_issue
 from .audit import run_audit
+from .sage import ask_sage
 
 console = Console()
 
@@ -14,8 +15,9 @@ def main():
     parser.add_argument("--smart", action="store_true", help="Use high-end Gemini Pro models (slower/lower quota)")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
-    # ... previous subparsers ...
-    # (I will match the context properly in the replacement)
+    # Sage Command
+    sage_parser = subparsers.add_parser("sage", help="Ask the Sage questions about your codebase")
+    sage_parser.add_argument("question", help="The question about your code")
 
     # Audit Command
     audit_parser = subparsers.add_parser("audit", help="Check repository 'Gold' status and metadata")
@@ -67,6 +69,8 @@ def main():
         explain_code(args.context, mode=mode)
     elif args.command == "audit":
         run_audit(repo_name=args.repo)
+    elif args.command == "sage":
+        ask_sage(args.question, mode=mode)
     else:
         parser.print_help()
 
