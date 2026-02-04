@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "git-alchemist"
-version = "1.0.3"
-description = "A unified AI stack to optimize, describe, and architect your GitHub repositories."
+version = "1.1.0"
+description = "A unified AI stack to optimize, describe, architect, and forge pull requests for your GitHub repositories."
 readme = "README.md"
 authors = [{ name = "abduznik" }]
 license = { text = "MIT" }
