@@ -54,30 +54,60 @@
     <!-- Footer scripts -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 
-    <!-- Installation Section -->
+    <!-- OS Tabs Installation -->
     <div id="install" class="max-w-3xl mx-auto px-6 py-12">
+        <h2 class="text-2xl font-bold mb-8 text-center text-slate-200 font-mono tracking-widest uppercase">Quick Install</h2>
         <div class="glass rounded-3xl overflow-hidden">
-            <!-- Tabs Header -->
             <div class="flex border-b border-white/5 bg-black/20">
-                <button onclick="switchTab('ps')" id="tab-ps" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase tab-active">Windows (PS)</button>
+                <button onclick="switchTab('lib')" id="tab-lib" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase tab-active">Global Library (Recommended)</button>
+                <button onclick="switchTab('ps')" id="tab-ps" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">Windows (PS)</button>
                 <button onclick="switchTab('sh')" id="tab-sh" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">Linux/Shell</button>
-                <button onclick="switchTab('mac')" id="tab-mac" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">macOS</button>
             </div>
             
-            <!-- Code Block -->
             <div class="p-8 relative group">
                 <div class="mb-4">
-                    <h3 id="os-title" class="text-slate-100 font-bold mb-1">PowerShell Setup</h3>
-                    <p id="os-desc" class="text-xs text-slate-500">Optimized for Windows 10/11 environment.</p>
+                    <h3 id="os-title" class="text-slate-100 font-bold mb-1">Global Library Setup</h3>
+                    <p id="os-desc" class="text-xs text-slate-500">Install once, run everywhere.</p>
                 </div>
                 <div class="relative">
                     <code id="install-cmd" class="block p-4 bg-black/40 rounded-xl text-sm mono text-blue-300 break-all border border-white/5 leading-relaxed">
-                        git clone https://github.com/abduznik/Git-Alchemist.git; cd Git-Alchemist; pip install -r requirements.txt
+                        git clone https://github.com/abduznik/Git-Alchemist.git && cd Git-Alchemist && pip install .
                     </code>
                     <button onclick="copyCurrentCmd(this)" class="copy-btn absolute top-3 right-3 p-2 bg-slate-800 rounded-lg border border-white/10 hover:bg-slate-700 transition">
                         <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEO Use Cases Section -->
+    <div class="max-w-5xl mx-auto px-6 py-12">
+        <h2 class="text-3xl font-bold mb-12 text-center gradient-text">Built for these challenges</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="p-6 border-l-2 border-blue-500/30 bg-blue-500/5">
+                <h4 class="font-bold text-blue-400 mb-2">Automate GitHub Profile README</h4>
+                <p class="text-sm text-slate-400">Tired of manually listing projects? The Alchemist analyzes your actual code history to build a professional profile automatically.</p>
+            </div>
+            <div class="p-6 border-l-2 border-purple-500/30 bg-purple-500/5">
+                <h4 class="font-bold text-purple-400 mb-2">Generate Repo Topics & Tags</h4>
+                <p class="text-sm text-slate-400">Boost repository discoverability. Use AI to suggest search-friendly GitHub topics based on your project content.</p>
+            </div>
+            <div class="p-6 border-l-2 border-green-500/30 bg-green-500/5">
+                <h4 class="font-bold text-green-400 mb-2">Safe Project Scaffolding</h4>
+                <p class="text-sm text-slate-400">Generate complex project structures in temporary, isolated workspaces before committing them to your system.</p>
+            </div>
+            <div class="p-6 border-l-2 border-fuchsia-500/30 bg-fuchsia-500/5">
+                <h4 class="font-bold text-fuchsia-400 mb-2">Semantic Commit Messages</h4>
+                <p class="text-sm text-slate-400">Clean up your history. Get professional, AI-powered git commit message suggestions based on your staged changes.</p>
+            </div>
+            <div class="p-6 border-l-2 border-cyan-500/30 bg-cyan-500/5">
+                <h4 class="font-bold text-cyan-400 mb-2">Codebase Audit & Health</h4>
+                <p class="text-sm text-slate-400">Transmute lead repos into gold. Audit your projects for professional standards like Licenses, CI/CD, and metadata.</p>
+            </div>
+            <div class="p-6 border-l-2 border-indigo-500/30 bg-indigo-500/5">
+                <h4 class="font-bold text-indigo-400 mb-2">Chat with Local Code</h4>
+                <p class="text-sm text-slate-400">The Sage provides a technical lead perspective by meditating on your local source code to answer deep questions.</p>
             </div>
         </div>
     </div>
@@ -143,6 +173,11 @@
 
     <script>
         const configs = {
+            lib: {
+                title: 'Global Library Setup',
+                desc: 'Install once, run everywhere.',
+                cmd: 'git clone https://github.com/abduznik/Git-Alchemist.git && cd Git-Alchemist && pip install .'
+            },
             ps: {
                 title: 'PowerShell Setup',
                 desc: 'Optimized for Windows 10/11 environment.',
@@ -152,11 +187,6 @@
                 title: 'Linux / Shell Setup',
                 desc: 'Ideal for Termux, Ubuntu, or WSL.',
                 cmd: 'git clone https://github.com/abduznik/Git-Alchemist.git && cd Git-Alchemist && pip install -r requirements.txt'
-            },
-            mac: {
-                title: 'macOS Setup',
-                desc: 'Native command-line setup for Mac.',
-                cmd: 'git clone https://github.com/abduznik/Git-Alchemist.git && cd Git-Alchemist && pip3 install -r requirements.txt'
             }
         };
 

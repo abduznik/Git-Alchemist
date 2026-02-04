@@ -2,6 +2,10 @@
 
 **Git-Alchemist ⚗️** is a unified AI-powered CLI tool for automating GitHub repository management. It consolidates multiple technical utilities into a single, intelligent system powered by Google's Gemini 3 and Gemma 3 models.
 
+### 🌐 [Visit the Official Site](https://abduznik.github.io/Git-Alchemist/)
+
+---
+
 ## Features
 
 *   **Smart Profile Generator:** Intelligently generates or updates your GitHub Profile README.
@@ -10,6 +14,9 @@
 *   **Issue Drafter:** Translates loose ideas into structured, technical GitHub Issue drafts.
 *   **Architect (Scaffold):** Generates and executes project scaffolding commands in a safe, temporary workspace.
 *   **Fix & Explain:** Apply AI-powered patches to specific files or get concise technical explanations for complex code.
+*   **Gold Score Audit:** Measure your repository's professional quality and health.
+*   **The Sage:** Contextual codebase chat to answer deep technical questions about your code.
+*   **Commit Alchemist:** Automated semantic commit message suggestions from staged changes.
 
 ## Model Tiers
 
@@ -26,34 +33,36 @@ Git-Alchemist features a dynamic fallback system to ensure you never hit a quota
     cd Git-Alchemist
     ```
 
-2.  **Install dependencies:**
+2.  **Install as a Global Library:**
     ```bash
-    pip install -r requirements.txt
+    pip install .
     ```
 
 3.  **Set up your Environment:**
-    Create a `.env` file in the root directory:
+    Create a `.env` file in the directory or export it in your shell:
     ```env
     GEMINI_API_KEY=your_actual_api_key_here
     ```
 
 ## Usage
 
+Once installed, you can run the `alchemist` command from **any directory**:
+
 ```bash
-# Optimize your repository topics
-python -m src.cli topics
+# Audit a repository
+alchemist audit
 
-# Generate missing descriptions
-python -m src.cli describe
+# Optimize repository topics
+alchemist topics
 
-# Draft a technical issue
-python -m src.cli issue "Add a dark mode toggle to the dashboard"
+# Generate semantic commit messages
+alchemist commit
+
+# Ask the Sage a question
+alchemist sage "How does the audit scoring work?"
 
 # Scaffold a new project (Safe Mode)
-python -m src.cli scaffold "A FastAPI backend with a React frontend" --smart
-
-# Apply a fix to a file
-python -m src.cli fix src/main.py "Convert this function to use async/await"
+alchemist scaffold "A FastAPI backend with a React frontend" --smart
 ```
 
 ## Requirements
