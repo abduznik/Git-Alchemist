@@ -16,6 +16,7 @@
 *   **Fix & Explain:** Apply AI-powered patches to specific files or get concise technical explanations for complex code.
 *   **Gold Score Audit:** Measure your repository's professional quality and health.
 *   **The Sage:** Contextual codebase chat to answer deep technical questions about your code.
+*   **Alchemist Helper:** Interactive assistant to help you navigate the tool and your project.
 *   **Commit Alchemist:** Automated semantic commit message suggestions from staged changes.
 *   **Forge:** Automated PR creation from local changes.
 
@@ -61,6 +62,9 @@ alchemist commit
 
 # Ask the Sage a question
 alchemist sage "How does the audit scoring work?"
+
+# Start the interactive helper
+alchemist helper
 
 # Scaffold a new project (Safe Mode)
 alchemist scaffold "A FastAPI backend with a React frontend" --smart

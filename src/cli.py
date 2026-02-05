@@ -9,6 +9,7 @@ from .audit import run_audit
 from .sage import ask_sage
 from .committer import suggest_commits
 from .forge import forge_pr
+from .helper import run_helper
 
 console = Console()
 
@@ -17,6 +18,9 @@ def main():
     parser.add_argument("--smart", action="store_true", help="Use high-end Gemini Pro models (slower/lower quota)")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
     
+    # Helper Command
+    helper_parser = subparsers.add_parser("helper", help="Interactive assistant for project help and tool usage")
+
     # Forge Command
     forge_parser = subparsers.add_parser("forge", help="Automatically generate and open a PR from the current branch")
 
@@ -83,6 +87,8 @@ def main():
         suggest_commits(mode=mode)
     elif args.command == "forge":
         forge_pr(mode=mode)
+    elif args.command == "helper":
+        run_helper(mode=mode)
     else:
         parser.print_help()
 
