@@ -6,15 +6,12 @@ def run_shell(command, **kwargs):
     """
     Runs a shell command and returns the output.
     Accepts extra kwargs (like check=False) to pass to subprocess.run if needed.
+    Forces UTF-8 encoding to avoid Windows CP1252 errors.
     """
     try:
-        # We manually pop 'check' if it's there to avoid double-passing issues if we changed implementation details,
-        # but since we are wrapping subprocess.run, we can filter what we want or just catch errors.
-        # However, subprocess.run DOES support 'check'.
-        # The issue is that my previous implementation didn't accept **kwargs.
-        
-        # We allow 'check' to be passed, default is False essentially because we catch exceptions.
-        # If the user sets check=True, the exception below will catch it and return None.
+        # Force UTF-8 encoding for input and output to handle special characters/emojis
+        kwargs['encoding'] = 'utf-8'
+        kwargs['errors'] = 'replace' # Replace invalid characters instead of crashing
         
         result = subprocess.run(command, shell=True, capture_output=True, text=True, **kwargs)
         return result.stdout.strip()
