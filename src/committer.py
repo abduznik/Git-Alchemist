@@ -27,14 +27,9 @@ def suggest_commits(mode="fast"):
     console.print("[cyan]Analyzing changes for the perfect commit message...[/cyan]")
     
     prompt = f"""
-Task: Suggest 3 professional, semantic commit messages based on the git diff below.
+Task: Suggest 3 professional, semantic commit messages based on the git diff provided in the Context.
 Format: <type>(<scope>): <subject>
 Types: feat, fix, docs, style, refactor, test, chore
-
-DIFF:
-'''
-{diff[:5000]}
-'''
 
 Instructions:
 1. Return ONLY a numbered list of 3 options.
@@ -42,7 +37,8 @@ Instructions:
 3. Ensure they are concise and accurate.
 """
 
-    result = generate_content(prompt, mode=mode)
+    # Pass diff as context
+    result = generate_content(prompt, mode=mode, context=diff)
     if not result:
         return
 

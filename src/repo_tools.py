@@ -86,18 +86,19 @@ def generate_descriptions(user=None, mode="fast"):
         
         # Fetch Readme
         try:
+            # We fetch the whole readme now, allowing the engine to chunk if needed
             readme = run_shell(f'gh repo view {username}/{name} --json body -q .body', check=False)
-            context = readme[:1500] if readme else "No readme available."
+            context = readme if readme else "No readme available."
         except:
             context = "No readme available."
 
         prompt = f"""
 Task: Generate a GitHub repository description for project "{name}". 
-Readme Context: "{context}". 
 Constraint: Max 20 words. Start with an action verb. 
 Output ONLY the description. No quotes.
 """
-        result = generate_content(prompt, mode=mode)
+        # Pass readme as context
+        result = generate_content(prompt, mode=mode, context=context)
         if not result: continue
 
         new_desc = result.strip().replace('"', '').replace("'", "")

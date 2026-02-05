@@ -26,7 +26,7 @@ User Goal: "{instruction}"
 Operating System: Linux/Unix (Termux)
 Constraint: Return ONLY a JSON object with a single key "commands" containing an array of shell strings.
 The commands should assume they are running INSIDE the project root.
-Example: {{"commands": ["mkdir src", "touch src/main.py", "echo 'print(1)' > src/main.py"]}}
+Example: {{'commands': ['mkdir src', 'touch src/main.py', "echo 'print(1)' > src/main.py"]}}
 Do NOT use markdown blocks.
 """
 
@@ -126,16 +126,14 @@ User Instructions:
 {instruction}
 '''
 
-Target File Content:
-'''
-{content}
-'''
+Target File Content is provided in the Context.
 
 Goal: Return ONLY the complete, corrected file content based on the User Instructions. Do not use markdown blocks.
 """
     
     console.print(f"[magenta]Consulting Gemini ({mode} mode)...[/magenta]")
-    result = generate_content(prompt, mode=mode)
+    # Pass content as context to enable smart chunking if file is huge
+    result = generate_content(prompt, mode=mode, context=content)
     if not result:
         return
 
@@ -167,7 +165,8 @@ def explain_code(context, mode="fast"):
     """
     Explains a concept or code snippet.
     """
-    prompt = f"Task: Explain Concept/Code. Context: '{context}'. Keep it concise and technical."
-    result = generate_content(prompt, mode=mode)
+    prompt = f"Task: Explain Concept/Code. Context is provided. Keep it concise and technical."
+    # Pass context separately
+    result = generate_content(prompt, mode=mode, context=context)
     if result:
         console.print(f"\n[bold white]--- Explanation ---[/bold white]\n{result}\n[bold white]-------------------[/bold white]")
