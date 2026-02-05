@@ -12,6 +12,8 @@ src/audit.py
 src/cli.py
 src/committer.py
 src/core.py
+src/forge.py
+src/helper.py
 src/issue_gen.py
 src/profile_gen.py
 src/promote.py

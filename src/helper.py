@@ -1,7 +1,7 @@
 from rich.console import Console
 from rich.prompt import Prompt
 from .core import generate_content
-from .sage import get_codebase_context
+from .utils import get_codebase_context
 
 console = Console()
 
@@ -50,14 +50,9 @@ def run_helper(mode="fast"):
         if not user_query.strip():
             continue
 
-        # 3. Construct Prompt
-        full_prompt = f"""
+        # 3. Construct Prompt (Without huge context inside)
+        prompt = f"""
 {ALCHEMIST_MANUAL}
-
-CODEBASE CONTEXT:
-'''
-{code_context}
-'''
 
 USER QUERY:
 {user_query}
@@ -68,9 +63,9 @@ Instructions:
 3. Be helpful, concise, and technical.
 """
 
-        # 4. Generate Answer
+        # 4. Generate Answer (Pass context separately)
         with console.status("[magenta]Thinking...[/magenta]"):
-            response = generate_content(full_prompt, mode=mode)
+            response = generate_content(prompt, mode=mode, context=code_context)
 
         if response:
             console.print("\n[bold cyan]Alchemist Helper:[/bold cyan]")

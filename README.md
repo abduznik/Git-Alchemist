@@ -15,17 +15,20 @@
 *   **Architect (Scaffold):** Generates and executes project scaffolding commands in a safe, temporary workspace.
 *   **Fix & Explain:** Apply AI-powered patches to specific files or get concise technical explanations for complex code.
 *   **Gold Score Audit:** Measure your repository's professional quality and health.
-*   **The Sage:** Contextual codebase chat to answer deep technical questions about your code.
-*   **Alchemist Helper:** Interactive assistant to help you navigate the tool and your project.
+*   **The Sage & Helper:** Contextual codebase chat and interactive assistant, now powered by a **Smart Chunking Engine** to handle large codebases seamlessly.
 *   **Commit Alchemist:** Automated semantic commit message suggestions from staged changes.
 *   **Forge:** Automated PR creation from local changes.
 
-## Model Tiers
+## Model Tiers (v1.2.0)
 
-Git-Alchemist features a dynamic fallback system to ensure you never hit a quota wall:
+Git-Alchemist features a dynamic model selection and fallback system with strict separation for stability:
 
-*   **Fast Mode (Default):** Utilizes **Gemma 3 (27B)** and **Gemini 3 Flash**. Optimized for speed and high-volume tasks.
-*   **Smart Mode (`--smart`):** Utilizes **Gemini 3 Pro** and **Gemini 2.5 Pro**. Optimized for complex architecture and deep code analysis.
+*   **Fast Mode (Default):** Utilizes **Gemma 3 (27B, 12B, 4B)**. Optimized for speed, local-like reasoning, and high availability.
+*   **Smart Mode (`--smart`):** Utilizes **Gemini 3 Flash**, **Gemini 2.5 Flash**, and **Flash-Lite**. Optimized for complex architecture, deep code analysis, and large context windows.
+
+**New in v1.2.0:**
+*   **Parallel Map-Reduce:** Large codebases are automatically split into chunks and processed in parallel (up to 2 workers) for faster, deeper insights without hitting token limits.
+*   **Interactive Helper:** Use `alchemist helper` for a guided experience through your project.
 
 ## Installation
 

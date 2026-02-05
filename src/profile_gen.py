@@ -92,17 +92,11 @@ def generate_profile(username, force=False, mode="fast"):
     candidates_str = "\n".join([f"- Name: {r['name']}\n  Desc: {r['description'] or ''}\n  URL: {r['url']}" for r in candidates])
     
     prompt = ""
+    full_context = ""
+    
     if strategy == "SMART_UPDATE":
         prompt = f"""
 Task: Update a GitHub Profile README.
-Existing Markdown:
-'''
-{current_content}
-'''
-
-New Projects to Add:
-{candidates_str}
-
 Instructions:
 1. Integrate the 'New Projects' into the 'Existing Markdown' naturally.
 2. Place them under appropriate categories.
@@ -112,14 +106,13 @@ Instructions:
 6. STRICTLY NO EMOJIS in new additions.
 7. Output the FULL updated Markdown content.
 """
+        full_context = f"Existing Markdown:\n'''\n{current_content}\n'''\n\nNew Projects to Add:\n{candidates_str}"
+        
     else:
         # Full Gen
         prompt = f"""
 Task: Generate a professional Project Showcase for a GitHub Profile.
 Username: {username}
-
-Projects List:
-{candidates_str}
 
 Instructions:
 1. Group projects into 3-6 meaningful categories (e.g., '## AI & Automation', '## Hardware').
@@ -128,9 +121,11 @@ Instructions:
 4. STRICTLY NO EMOJIS.
 5. Output the FULL Markdown.
 """
+        full_context = f"Projects List:\n{candidates_str}"
 
     console.print(f"[magenta]Generating content with Gemini ({mode} mode)...[/magenta]")
-    result = generate_content(prompt, mode=mode)
+    # Pass combined context
+    result = generate_content(prompt, mode=mode, context=full_context)
     
     if not result:
         return
