@@ -11,8 +11,9 @@ collection of loose PowerShell scripts I wrote to handle my own GitHub maintenan
 
 I finally decided to combine them all into a unified project. I ported everything to 
 Python and built Git-Alchemist. It uses Gemini 3 and Gemma 3 to automate the boring 
-parts of Git management—like writing descriptions or scaffolding project structures 
-in safe, temporary workspaces. I'm really happy with how the consolidation turned out 
+parts of Git management—like writing descriptions, scaffolding project structures 
+in safe workspaces, and now 'Forging' entire Pull Requests from local changes 
+in a single command. I'm really happy with how the consolidation turned out 
 and wanted to share it with the community.
 """
 
@@ -25,7 +26,7 @@ def post_to_devto(api_key):
         "article": {
             "title": "I consolidated my Git automation scripts into a unified AI stack: Git-Alchemist",
             "published": True,
-            "body_markdown": f"# Git-Alchemist ⚗️\n\n{STORY}\n\nCheck it out here: [https://github.com/abduznik/Git-Alchemist](https://github.com/abduznik/Git-Alchemist)\n\nLanding Page: [https://abduznik.github.io/Git-Alchemist/](https://abduznik.github.io/Git-Alchemist/)",
+            "body_markdown": f"# Git-Alchemist ⚗️\n\n{STORY}\n\n### Key Features:\n* **Forge:** Automated PR creation from local changes.\n* **Architect:** Safe project scaffolding.\n* **The Sage:** Contextual codebase chat.\n\nCheck it out here: [https://github.com/abduznik/Git-Alchemist](https://github.com/abduznik/Git-Alchemist)\n\nLanding Page: [https://abduznik.github.io/Git-Alchemist/](https://abduznik.github.io/Git-Alchemist/)",
             "tags": ["python", "github", "ai", "opensource"],
             "series": "Git Automation"
         }
@@ -50,6 +51,10 @@ def generate_manual_submissions():
         "TLDR Newsletter (https://tldr.tech/submit)": {
             "Link": "https://github.com/abduznik/Git-Alchemist",
             "Description": "A unified AI stack for GitHub repository management and project scaffolding."
+        },
+        "Show HN (https://news.ycombinator.com/submit)": {
+            "Title": "Show HN: Git-Alchemist – Unified AI CLI to automate PRs, commits, and repo metadata",
+            "Text": f"{STORY}\nI'd love to get your feedback on the 'Forge' and 'Architect' modules. Repo: https://github.com/abduznik/Git-Alchemist"
         },
         "Console.dev (Newsletter for Dev Tools)": {
             "Email": "hello@console.dev",
