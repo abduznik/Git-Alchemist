@@ -21,8 +21,10 @@ FAST_MODELS = [
     "gemma-3-4b-it",
 ]
 
-# Safe token limit for a single request (leaving room for output)
-SAFE_TOKEN_LIMIT = 12000 
+# Safe token limits
+SAFE_TOKEN_LIMIT_FAST = 12000
+SAFE_TOKEN_LIMIT_SMART = 230000 
+
 # Heuristic: ~4 characters per token
 CHARS_PER_TOKEN = 4
 
@@ -42,7 +44,7 @@ def estimate_tokens(text):
         return 0
     return len(text) // CHARS_PER_TOKEN
 
-def split_context(context, limit=SAFE_TOKEN_LIMIT):
+def split_context(context, limit):
     """
     Splits context into chunks that fit within the token limit.
     """
@@ -55,8 +57,7 @@ def process_chunk(client, chunk, prompt, models):
     """
     chunk_prompt = f"""
     Analyze the following part of the codebase context based on this instruction:
-    "{prompt}"
-    
+    "{prompt}"    
     PARTIAL CONTEXT:
     '''
     {chunk}
@@ -74,13 +75,16 @@ def generate_content(prompt, mode="fast", context=None):
     # Strict separation: Fast uses ONLY Gemma, Smart uses ONLY Gemini
     models = SMART_MODELS if mode == "smart" else FAST_MODELS
     
+    # Determine safe limit based on mode
+    safe_limit = SAFE_TOKEN_LIMIT_SMART if mode == "smart" else SAFE_TOKEN_LIMIT_FAST
+    
     total_tokens = estimate_tokens(prompt) + estimate_tokens(context)
     
     # 1. Smart Chunking (Map-Reduce) for large contexts
-    if context and total_tokens > SAFE_TOKEN_LIMIT:
-        console.print(f"[yellow]Large context detected (~{total_tokens} tokens). Processing with {models[0]}...[/yellow]")
+    if context and total_tokens > safe_limit:
+        console.print(f"[yellow]Large context detected (~{total_tokens} tokens). Engaging Smart Chunking with {models[0]}...[/yellow]")
         
-        chunks = split_context(context)
+        chunks = split_context(context, safe_limit)
         summaries = []
         batch_size = 2 # Process 2 chunks in parallel
         

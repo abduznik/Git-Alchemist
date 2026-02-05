@@ -30,7 +30,7 @@
     <!-- Hero Section -->
     <div class="max-w-4xl mx-auto px-6 pt-24 pb-12 text-center">
         <div class="inline-block px-4 py-1.5 mb-6 glass rounded-full text-xs font-semibold tracking-wider text-blue-400 uppercase">
-            v1.2.0 • Powered by Gemini 3 & Gemma 3
+            v1.2.1 • Powered by Gemini 3 & Gemma 3
         </div>
         <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
             Git-<span class="gradient-text">Alchemist</span>
@@ -60,24 +60,61 @@
         <h2 class="text-2xl font-bold mb-8 text-center text-slate-200 font-mono tracking-widest uppercase">Quick Install</h2>
         <div class="glass rounded-3xl overflow-hidden">
             <div class="flex border-b border-white/5 bg-black/20">
-                <button onclick="switchTab('lib')" id="tab-lib" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase tab-active">Global Library (Recommended)</button>
-                <button onclick="switchTab('ps')" id="tab-ps" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">Windows (PS)</button>
-                <button onclick="switchTab('sh')" id="tab-sh" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">Linux/Shell</button>
+                <button onclick="switchTab('lib')" id="tab-lib" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase tab-active">Global Library</button>
+                <button onclick="switchTab('ps')" id="tab-ps" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">Windows (Source)</button>
+                <button onclick="switchTab('sh')" id="tab-sh" class="tab-btn flex-1 py-4 text-sm font-bold tracking-wide transition uppercase">Linux/Mac (Source)</button>
             </div>
             
             <div class="p-8 relative group">
                 <div class="mb-4">
                     <h3 id="os-title" class="text-slate-100 font-bold mb-1">Global Library Setup</h3>
-                    <p id="os-desc" class="text-xs text-slate-500">Install once, run everywhere.</p>
+                    <p id="os-desc" class="text-xs text-slate-500">Install once via pip, run everywhere.</p>
                 </div>
                 <div class="relative">
-                    <code id="install-cmd" class="block p-4 bg-black/40 rounded-xl text-sm mono text-blue-300 break-all border border-white/5 leading-relaxed">
-                        pip install git-alchemist
-                    </code>
+                    <pre id="install-cmd" class="block p-4 bg-black/40 rounded-xl text-sm mono text-blue-300 overflow-x-auto border border-white/5 leading-relaxed">pip install git-alchemist</pre>
                     <button onclick="copyCurrentCmd(this)" class="copy-btn absolute top-3 right-3 p-2 bg-slate-800 rounded-lg border border-white/10 hover:bg-slate-700 transition">
                         <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- API Key Setup Section -->
+    <div class="max-w-4xl mx-auto px-6 py-12">
+        <h2 class="text-2xl font-bold mb-8 text-center text-slate-200 font-mono tracking-widest uppercase">API Key Setup</h2>
+        <div class="glass p-8 rounded-3xl space-y-8">
+            <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl text-sm text-blue-300">
+                <strong>Requirement:</strong> Get your free API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-white">Google AI Studio</a>.
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Windows -->
+                <div>
+                    <h3 class="font-bold text-white mb-3">Windows (PowerShell)</h3>
+                    <code class="block bg-black/40 p-3 rounded-lg text-sm mono text-green-400 mb-2">
+                        $env:GEMINI_API_KEY="your_key_here"
+                    </code>
+                    <p class="text-xs text-slate-500">To make it permanent, add it to your profile or use System Environment Variables.</p>
+                </div>
+                
+                <!-- Linux/Mac -->
+                <div>
+                    <h3 class="font-bold text-white mb-3">Linux / macOS</h3>
+                    <code class="block bg-black/40 p-3 rounded-lg text-sm mono text-green-400 mb-2">
+                        export GEMINI_API_KEY="your_key_here"
+                    </code>
+                    <p class="text-xs text-slate-500">Add to <code>~/.bashrc</code> or <code>~/.zshrc</code> to make it permanent.</p>
+                </div>
+            </div>
+            
+            <!-- .env method -->
+            <div class="border-t border-white/5 pt-6">
+                <h3 class="font-bold text-white mb-3">Using a .env file (Project specific)</h3>
+                <p class="text-sm text-slate-400 mb-3">Create a file named <code>.env</code> in your project root:</p>
+                <code class="block bg-black/40 p-3 rounded-lg text-sm mono text-slate-300">
+                    GEMINI_API_KEY=your_actual_key_here
+                </code>
             </div>
         </div>
     </div>
@@ -154,14 +191,14 @@
                     <code class="bg-black/40 px-2 py-1 rounded">gh auth login</code>
                 </div>
                 <div>
-                    <span class="font-bold text-white block mb-1">2. Set your API Key</span>
-                    Export your Gemini key or add it to a <code>.env</code> file:
-                    <code class="bg-black/40 px-2 py-1 rounded">export GEMINI_API_KEY=your_key</code>
-                </div>
-                <div>
-                    <span class="font-bold text-white block mb-1">3. Start the Transmutation</span>
+                    <span class="font-bold text-white block mb-1">2. Start the Transmutation</span>
                     Optimize your profile or repo metadata:
                     <code class="block mt-2 p-3 bg-black/40 rounded-lg text-blue-300 mono">alchemist topics --smart</code>
+                </div>
+                 <div>
+                    <span class="font-bold text-white block mb-1">3. Ask for Help</span>
+                    Launch the interactive assistant:
+                    <code class="block mt-2 p-3 bg-black/40 rounded-lg text-blue-300 mono">alchemist helper</code>
                 </div>
             </div>
         </div>
@@ -176,18 +213,18 @@
         const configs = {
             lib: {
                 title: 'Global Library Setup',
-                desc: 'Install once, run everywhere.',
+                desc: 'Install once via pip, run everywhere.',
                 cmd: 'pip install git-alchemist'
             },
             ps: {
-                title: 'PowerShell Setup',
-                desc: 'Optimized for Windows 10/11 environment.',
-                cmd: 'pip install git-alchemistr requirements.txt'
+                title: 'Windows Source Setup',
+                desc: 'Clone and install manually.',
+                cmd: 'git clone https://github.com/abduznik/Git-Alchemist.git\ncd Git-Alchemist\npip install -r requirements.txt'
             },
             sh: {
-                title: 'Linux / Shell Setup',
-                desc: 'Ideal for Termux, Ubuntu, or WSL.',
-                cmd: 'pip install git-alchemistr requirements.txt'
+                title: 'Linux/Mac Source Setup',
+                desc: 'Clone and install manually.',
+                cmd: 'git clone https://github.com/abduznik/Git-Alchemist.git\ncd Git-Alchemist\npip install -r requirements.txt'
             }
         };
 
