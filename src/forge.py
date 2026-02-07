@@ -8,6 +8,23 @@ from .utils import run_shell, check_gh_auth
 
 console = Console()
 
+def get_open_issues():
+    """Fetches a list of open issues from the repository."""
+    try:
+        issues_json = run_shell('gh issue list --state open --limit 20 --json number,title', check=False)
+        if not issues_json:
+            return "No open issues found."
+        
+        import json
+        issues = json.loads(issues_json)
+        if not issues:
+             return "No open issues found."
+             
+        formatted = "\n".join([f"#{i['number']}: {i['title']}" for i in issues])
+        return formatted
+    except:
+        return "Could not fetch issues (gh cli error)."
+
 def get_branch_diff(base_branch="master"):
     """Gets the diff between the current branch and the base branch."""
     try:
@@ -111,9 +128,16 @@ def forge_pr(mode="fast"):
 
     console.print(f"[cyan]Forging Pull Request details for branch relative to {base}...[/cyan]")
     
+    # Fetch context
+    open_issues = get_open_issues()
+    current_branch = run_shell("git rev-parse --abbrev-ref HEAD")
+    
     prompt = f"""
 Task: Generate a professional GitHub Pull Request title and technical description.
-Context: Below is the git diff for the current branch.
+Context: 
+- Current Branch: {current_branch}
+- Open Issues:
+{open_issues}
 
 DIFF:
 '''
@@ -123,8 +147,9 @@ DIFF:
 Instructions:
 1. Title: Concise, semantic (e.g., feat: add X, fix: handle Y).
 2. Body: 
-   - **Summary**: 1-2 sentences on what this PR does.
-   - **Technical Changes**: Bullet points explaining the logic changes.
+   - Start DIRECTLY with the high-level description/summary (Do NOT use a header like 'Summary' or '## Summary').
+   - Follow with a section "## Technical Changes" with bullet points.
+   - **Crucial**: If the changes likely resolve or relate to any Open Issue listed above (check branch name and code), append "Fixes #<number>" or "Relates to #<number>" at the very end.
 3. Return ONLY a JSON object with "title" and "body" keys. No markdown blocks.
 """
 
@@ -145,7 +170,6 @@ Instructions:
         
         if os.getenv("FORGE_NO_CONFIRM") or Confirm.ask("Forge and open this PR on GitHub?"):
             # Ensure branch is pushed
-            current_branch = run_shell("git rev-parse --abbrev-ref HEAD")
             console.print(f"[gray]Pushing {current_branch} to origin...[/gray]")
             run_shell(f"git push -u origin {current_branch} --force")
             
