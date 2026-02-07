@@ -150,7 +150,13 @@ Instructions:
    - Start DIRECTLY with the high-level description/summary (Do NOT use a header like 'Summary' or '## Summary').
    - Follow with a section "## Technical Changes" with bullet points.
    - **Crucial**: If the changes likely resolve or relate to any Open Issue listed above (check branch name and code), append "Fixes #<number>" or "Relates to #<number>" at the very end.
-3. Return ONLY a JSON object with "title" and "body" keys. No markdown blocks.
+3. **CRITICAL**: The output MUST be valid JSON with keys "title" and "body". Do NOT include any text outside the JSON object.
+
+Example Output:
+{
+  "title": "feat: add new feature",
+  "body": "This PR adds...\\n\\n## Technical Changes\\n* Change A\\n* Change B"
+}
 """
 
     result = generate_content(prompt, mode=mode)
