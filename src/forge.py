@@ -77,7 +77,7 @@ Diff:
 '''
 {diff[:3000]}
 '''
-Constraint: Max 70 characters. No quotes. Start with a verb (e.g., 'fix:', 'feat:', 'chore:').
+Constraint: Max 70 characters. No quotes. Start with a verb (e.g., 'fix:', 'feat:', 'chore:')
 """
         commit_msg = generate_content(prompt, mode=mode)
         if commit_msg:
@@ -114,13 +114,8 @@ def forge_pr(mode="fast"):
     
     if not base_branch:
         base_branch = "master"
-        # Try main if master doesn't look right, but remote show origin is best source
-        # or check local branches
     
     diff, base = get_branch_diff(base_branch)
-    
-    # If no diff, maybe we are on the base branch and just committed?
-    # get_branch_diff compares base...HEAD. If we are on a new branch that branched from base, it should work.
     
     if not diff:
         console.print("[yellow]No changes detected between current branch and base branch.[/yellow]")
@@ -150,12 +145,12 @@ Instructions:
    - Start DIRECTLY with the high-level description/summary (Do NOT use a header like 'Summary' or '## Summary').
    - Follow with a section "## Technical Changes" with bullet points.
    - **Crucial**: If the changes likely resolve or relate to any Open Issue listed above (check branch name and code), append "Fixes #<number>" or "Relates to #<number>" at the very end.
-3. **CRITICAL**: The output MUST be valid JSON with keys "title" and "body". Do NOT include any text outside the JSON object.
+3. **CRITICAL**: The output MUST be a valid JSON object with keys "title" and "body".
 
 Example Output:
 {{
   "title": "feat: add new feature",
-  "body": "This PR adds...\\n\\n## Technical Changes\\n* Change A\\n* Change B"
+  "body": "This PR adds...\n\n## Technical Changes\n* Change A\n* Change B"
 }}
 """
 
@@ -166,8 +161,25 @@ Example Output:
     try:
         import json
         clean_json = result.replace("```json", "").replace("```", "").strip()
-        pr_data = json.loads(clean_json)
         
+        # Try parsing JSON first
+        try:
+            pr_data = json.loads(clean_json)
+        except json.JSONDecodeError:
+            # Fallback: Parse "Title: ... Body: ..." format
+            import re
+            title_match = re.search(r"Title:\s*(.+)", clean_json, re.IGNORECASE)
+            # Body is everything after "Body:"
+            body_match = re.search(r"Body:\s*(.+)", clean_json, re.IGNORECASE | re.DOTALL)
+            
+            if title_match and body_match:
+                pr_data = {
+                    "title": title_match.group(1).strip(),
+                    "body": body_match.group(1).strip()
+                }
+            else:
+                raise # Re-raise error if fallback fails
+
         title = pr_data.get("title", "AI PR Update")
         body = pr_data.get("body", "Automated PR created by Git-Alchemist.")
         
