@@ -66,7 +66,8 @@ def check_gh_auth():
     try:
         user_login = run_shell('gh api user -q ".login"')
         return user_login
-    except:
+    except Exception as ex:
+        print("Check gh auth Error")
         return None
 
 def get_user_email():
@@ -76,5 +77,6 @@ def get_user_email():
     try:
         email = run_shell('gh api user -q ".email"', check=False)
         return email if email else None
-    except:
+    except Exception as ex:
+        print("Get User Email Error")
         return None
