@@ -1,12 +1,17 @@
 import os
 import shutil
 import subprocess
+import sys
 
-def run_shell(command, **kwargs):
+def run_shell(command, suppress_errors=False, **kwargs):
     """
     Runs a shell command and returns the output.
     Accepts extra kwargs (like check=False) to pass to subprocess.run if needed.
     Forces UTF-8 encoding to avoid Windows CP1252 errors.
+    
+    Args:
+        command (str): The shell command to execute.
+        suppress_errors (bool): If True, stderr will not be printed on failure.
     """
     try:
         # Force UTF-8 encoding for input and output to handle special characters/emojis
@@ -14,8 +19,16 @@ def run_shell(command, **kwargs):
         kwargs['errors'] = 'replace' # Replace invalid characters instead of crashing
         
         result = subprocess.run(command, shell=True, capture_output=True, text=True, **kwargs)
+        
+        if result.returncode != 0 and result.stderr and not suppress_errors:
+             # Print error to stderr so the user can see it even if we return stdout
+             print(f"[Shell Error] Command: {command}", file=sys.stderr)
+             print(f"[Shell Error] Details: {result.stderr.strip()}", file=sys.stderr)
+
         return result.stdout.strip()
     except Exception as e:
+        if not suppress_errors:
+            print(f"[Shell Exception] {e}", file=sys.stderr)
         return None
 
 def get_codebase_context():

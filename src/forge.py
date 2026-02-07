@@ -137,8 +137,22 @@ Instructions:
             
             # Create PR
             cmd = f'gh pr create --title "{title}" --body "{body}\n\n> Forged by Git-Alchemist ⚗️"'
-            run_shell(cmd)
+            output = run_shell(cmd)
             console.print("[bold yellow]✨ PR successfully forged and opened![/bold yellow]")
+
+            # Cleanup: Checkout base branch and delete the forge branch
+            try:
+                # Ensure we have the latest base branch
+                console.print(f"[gray]Returning to {base.strip()}...[/gray]")
+                run_shell(f"git checkout {base.strip()}")
+                run_shell(f"git pull origin {base.strip()}", check=False)
+                
+                if current_branch != base.strip():
+                    console.print(f"[gray]Deleting local branch {current_branch}...[/gray]")
+                    run_shell(f"git branch -D {current_branch}")
+                    console.print(f"[green]Cleanup complete: Switched to {base.strip()} and deleted {current_branch}.[/green]")
+            except Exception as cleanup_error:
+                 console.print(f"[yellow]Warning: Cleanup failed ({cleanup_error}). You may still be on the forge branch.[/yellow]")
             
     except Exception as e:
         console.print(f"[red]Failed to forge PR:[/red] {e}")
