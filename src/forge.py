@@ -153,10 +153,10 @@ Instructions:
 3. **CRITICAL**: The output MUST be valid JSON with keys "title" and "body". Do NOT include any text outside the JSON object.
 
 Example Output:
-{
+{{
   "title": "feat: add new feature",
   "body": "This PR adds...\\n\\n## Technical Changes\\n* Change A\\n* Change B"
-}
+}}
 """
 
     result = generate_content(prompt, mode=mode)
