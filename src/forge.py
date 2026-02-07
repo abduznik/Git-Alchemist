@@ -178,8 +178,13 @@ Example Output:
                     "body": body_match.group(1).strip()
                 }
             else:
-                raise # Re-raise error if fallback fails
-
+                # "Hail Mary" fallback: First line is title, rest is body
+                lines = clean_json.split('\n', 1)
+                if len(lines) >= 2:
+                    pr_data = {"title": lines[0].strip(), "body": lines[1].strip()}
+                else:
+                    pr_data = {"title": lines[0].strip(), "body": "Automated PR."}
+        
         title = pr_data.get("title", "AI PR Update")
         body = pr_data.get("body", "Automated PR created by Git-Alchemist.")
         
