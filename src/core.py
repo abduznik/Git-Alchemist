@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from google import genai
 from dotenv import load_dotenv
 from rich.console import Console
+from typing import Any
 
 console = Console()
 
@@ -28,7 +29,7 @@ SAFE_TOKEN_LIMIT_SMART = 230000
 # Heuristic: ~4 characters per token
 CHARS_PER_TOKEN = 4
 
-def get_gemini_client():
+def get_gemini_client() -> Any:
     load_dotenv()
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -36,7 +37,7 @@ def get_gemini_client():
         sys.exit(1)
     return genai.Client(api_key=api_key, http_options={'api_version':'v1alpha'})
 
-def estimate_tokens(text):
+def estimate_tokens(text: str) -> int:
     """
     Estimates token count using a simple character heuristic.
     """
@@ -44,14 +45,14 @@ def estimate_tokens(text):
         return 0
     return len(text) // CHARS_PER_TOKEN
 
-def split_context(context, limit):
+def split_context(context: str, limit: int) -> list[str]:
     """
     Splits context into chunks that fit within the token limit.
     """
     chunk_size = limit * CHARS_PER_TOKEN
     return [context[i:i+chunk_size] for i in range(0, len(context), chunk_size)]
 
-def process_chunk(client, chunk, prompt, models):
+def process_chunk(client: Any, chunk: str, prompt: str, models: list[str]) -> str | None:
     """
     Worker function to process a single chunk.
     """
@@ -67,7 +68,7 @@ def process_chunk(client, chunk, prompt, models):
     """
     return generate_with_fallback(client, chunk_prompt, models, silent=True)
 
-def generate_content(prompt, mode="fast", context=None):
+def generate_content(prompt: str, mode: str = "fast", context: str | None = None) -> str:
     """
     Generates content with strict model separation and parallel smart chunking.
     """
@@ -78,7 +79,7 @@ def generate_content(prompt, mode="fast", context=None):
     # Determine safe limit based on mode
     safe_limit = SAFE_TOKEN_LIMIT_SMART if mode == "smart" else SAFE_TOKEN_LIMIT_FAST
     
-    total_tokens = estimate_tokens(prompt) + estimate_tokens(context)
+    total_tokens = estimate_tokens(prompt) + estimate_tokens(context or "")
     
     # 1. Smart Chunking (Map-Reduce) for large contexts
     if context and total_tokens > safe_limit:
@@ -126,13 +127,20 @@ def generate_content(prompt, mode="fast", context=None):
         Based on these findings, answer the original user request:
         {prompt}
         """
-        return generate_with_fallback(client, final_prompt, models)
+        result = generate_with_fallback(client, final_prompt, models)
+        return result or "No relevant information found in the provided context."
 
     # 2. Standard Generation
     full_prompt = f"{prompt}\n\nCONTEXT:\n{context}" if context else prompt
-    return generate_with_fallback(client, full_prompt, models)
+    result = generate_with_fallback(client, full_prompt, models)
+    return result or "No relevant information found in the provived context."
 
-def generate_with_fallback(client, prompt, models, silent=False):
+def generate_with_fallback(
+    client: Any,
+    prompt: str,
+    models: list[str],
+    silent: bool = False,
+) -> str | None:
     """
     Helper to try a list of models in order.
     """

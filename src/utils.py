@@ -2,8 +2,9 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Any 
 
-def run_shell(command, suppress_errors=False, **kwargs):
+def run_shell(command: str, suppress_errors: bool = False, **kwargs: Any) -> str | None:
     """
     Runs a shell command and returns the output.
     Accepts extra kwargs (like check=False) to pass to subprocess.run if needed.
@@ -31,7 +32,7 @@ def run_shell(command, suppress_errors=False, **kwargs):
             print(f"[Shell Exception] {e}", file=sys.stderr)
         return None
 
-def get_codebase_context():
+def get_codebase_context() -> str:
     """
     Scans the repository and aggregates source code into a single context string.
     """
@@ -58,7 +59,7 @@ def get_codebase_context():
                     
     return "\n".join(context)
 
-def check_gh_auth():
+def check_gh_auth() -> str | None:
     """
     Checks if the user is authenticated with GitHub CLI.
     Returns the username if authenticated, else None.
@@ -69,7 +70,7 @@ def check_gh_auth():
     except:
         return None
 
-def get_user_email():
+def get_user_email() -> str | None:
     """
     Gets the user email from GitHub CLI.
     """
