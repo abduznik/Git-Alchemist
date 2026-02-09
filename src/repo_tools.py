@@ -1,12 +1,13 @@
 import json
 import time
+from typing import Optional, Literal
 from rich.console import Console
 from .core import generate_content
 from .utils import run_shell, check_gh_auth
 
 console = Console()
 
-def optimize_topics(user=None, mode="fast"):
+def optimize_topics(user: Optional[str] = None, mode: Literal["fast", "smart"] = "fast") -> None:
     """
     Analyzes repositories and adds relevant topics using Gemini.
     """
@@ -65,7 +66,7 @@ Output Example: ["python", "automation"]
 
     console.print(f"[cyan]Done! Optimized {count} repositories.[/cyan]")
 
-def generate_descriptions(user=None, mode="fast"):
+def generate_descriptions(user: Optional[str] = None, mode: Literal["fast", "smart"] = "fast") -> None:
     """
     Generates descriptions for repositories that are missing them.
     """

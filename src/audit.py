@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Optional, Any
 from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress
@@ -7,20 +8,20 @@ from .utils import run_shell, check_gh_auth
 
 console = Console()
 
-def run_audit(user=None, repo_name=None):
+def run_audit(user: Optional[str] = None, repo_name: Optional[str] = None) -> Optional[int]:
     """
     Audits a repository for 'Gold Standard' items and returns a score.
     """
     username = user or check_gh_auth()
     if not username:
         console.print("[red]Not authenticated with gh CLI.[/red]")
-        return
+        return None
 
     # Use current directory if no repo specified
     target_repo = repo_name or run_shell("gh repo view --json name --jq .name", check=False)
     if not target_repo:
         console.print("[yellow]Not inside a Git repository. Auditing current directory files only.[/yellow]")
-        repo_data = {}
+        repo_data: dict[str, Any] = {}
     else:
         console.print(f"[cyan]Auditing Repository:[/cyan] [bold]{username}/{target_repo}[/bold]")
         repo_data_raw = run_shell(f"gh repo view {username}/{target_repo} --json description,repositoryTopics,licenseInfo", check=False)
