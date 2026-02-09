@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 from rich.console import Console
 from .core import generate_content
 from .utils import run_shell, get_codebase_context
