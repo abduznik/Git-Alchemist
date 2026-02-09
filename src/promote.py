@@ -17,7 +17,7 @@ in a single command. I'm really happy with how the consolidation turned out
 and wanted to share it with the community.
 """
 
-def post_to_devto(api_key):
+def post_to_devto(api_key: str) -> None:
     """Automates posting to Dev.to"""
     url = "https://dev.to/api/articles"
     headers = {"api-key": api_key}
@@ -41,7 +41,7 @@ def post_to_devto(api_key):
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
 
-def generate_manual_submissions():
+def generate_manual_submissions() -> None:
     """Generates text for manual form submissions"""
     submissions = {
         "Hackaday (https://hackaday.com/submit-a-tip/)": {
