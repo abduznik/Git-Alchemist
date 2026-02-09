@@ -1,6 +1,7 @@
 import os
 import time
 from datetime import datetime
+from typing import Optional, Tuple
 from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
@@ -8,7 +9,7 @@ from .utils import run_shell, check_gh_auth
 
 console = Console()
 
-def get_open_issues():
+def get_open_issues() -> str:
     """Fetches a list of open issues from the repository."""
     try:
         issues_json = run_shell('gh issue list --state open --limit 20 --json number,title', check=False)
@@ -25,7 +26,7 @@ def get_open_issues():
     except Exception:
         return "Could not fetch issues (gh cli error)."
 
-def get_branch_diff(base_branch="master"):
+def get_branch_diff(base_branch: str = "master") -> Tuple[Optional[str], str]:
     """Gets the diff between the current branch and the base branch."""
     try:
         # If base_branch is not provided or invalid, try to detect it
@@ -43,7 +44,7 @@ def get_branch_diff(base_branch="master"):
     except Exception:
         return None, "master"
 
-def handle_uncommitted_changes(mode="fast"):
+def handle_uncommitted_changes(mode: str = "fast") -> bool:
     """
     Checks for uncommitted changes, creates a branch, and commits them.
     Returns True if a new branch was created and changes committed.
@@ -91,7 +92,7 @@ Constraint: Max 70 characters. No quotes. Start with a verb (e.g., 'fix:', 'feat
     
     return True
 
-def forge_pr(mode="fast"):
+def forge_pr(mode: str = "fast") -> None:
     """
     Analyzes changes (committed or uncommitted) and opens a professional PR on GitHub.
     """

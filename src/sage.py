@@ -1,11 +1,12 @@
 import os
+from typing import Optional
 from rich.console import Console
 from .core import generate_content
 from .utils import run_shell, get_codebase_context
 
 console = Console()
 
-def ask_sage(question, mode="fast"):
+def ask_sage(question: str, mode: str = "fast") -> None:
     """
     Queries Gemini using the aggregated codebase as context.
     """

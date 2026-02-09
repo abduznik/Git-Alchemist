@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from rich.console import Console
 from rich.prompt import Prompt
 from .core import generate_content
@@ -6,11 +7,11 @@ from .utils import run_shell
 
 console = Console()
 
-def get_staged_diff():
+def get_staged_diff() -> Optional[str]:
     """Returns the diff of staged changes."""
     return run_shell("git diff --cached", check=False)
 
-def suggest_commits(mode="fast"):
+def suggest_commits(mode: str = "fast") -> None:
     """
     Analyzes staged changes and suggests 3 semantic commit messages.
     """
