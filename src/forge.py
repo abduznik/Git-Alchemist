@@ -22,7 +22,7 @@ def get_open_issues():
              
         formatted = "\n".join([f"#{i['number']}: {i['title']}" for i in issues])
         return formatted
-    except:
+    except Exception:
         return "Could not fetch issues (gh cli error)."
 
 def get_branch_diff(base_branch="master"):
@@ -40,7 +40,7 @@ def get_branch_diff(base_branch="master"):
                  base_branch = "master"
              
         return run_shell(f"git diff {base_branch}...HEAD", check=False), base_branch
-    except:
+    except Exception:
         return None, "master"
 
 def handle_uncommitted_changes(mode="fast"):
