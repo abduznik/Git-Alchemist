@@ -1,6 +1,5 @@
 import os
 import requests
-from typing import Optional
 from rich.console import Console
 
 console = Console()
