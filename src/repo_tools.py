@@ -61,7 +61,7 @@ Output Example: ["python", "automation"]
                 run_shell(f'gh repo edit {username}/{name} --add-topic "{tag_str}"')
                 count += 1
                 time.sleep(0.5)
-        except:
+        except json.JSONDecodeError:
             console.print(f"  [red]Failed to parse topics for {name}[/red]")
 
     console.print(f"[cyan]Done! Optimized {count} repositories.[/cyan]")
