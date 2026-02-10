@@ -40,7 +40,7 @@ Return ONLY a JSON **LIST** of objects. Each object must have:
 - "label": suggested label (e.g. "bug", "enhancement", "refactor")
 - "easy": boolean (true if it's a small/starter task)
 
-**IMPORTANT**: Use forward slashes `/` for all file paths (e.g., `src/cli.py`, not `src\cli.py`) to avoid JSON escape errors.
+**IMPORTANT**: Use forward slashes `/` for all file paths (e.g., `src/cli.py`, not `src\\cli.py`) to avoid JSON escape errors.
 
 Example Output:
 [
