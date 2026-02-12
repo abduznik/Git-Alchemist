@@ -7,7 +7,7 @@ from typing import Optional, Literal
 from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
-from .utils import run_shell
+from .utils import run_shell, parse_json_response
 
 console = Console()
 
@@ -40,8 +40,10 @@ Do NOT use markdown blocks.
         return
 
     try:
-        clean_result = result.replace("```json", "").replace("```", "").strip()
-        data = json.loads(clean_result)
+        data = parse_json_response(result)
+        if not data or not isinstance(data, dict):
+             raise ValueError("Failed to parse AI response as JSON")
+             
         commands = data.get("commands", [])
         
         console.print("[green]Generated Plan:[/green]")

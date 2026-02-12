@@ -2,6 +2,8 @@ import os
 import shutil
 import subprocess
 import sys
+import json
+import re
 from typing import Any 
 
 def run_shell(command: str, suppress_errors: bool = False, **kwargs: Any) -> str | None:
@@ -30,6 +32,36 @@ def run_shell(command: str, suppress_errors: bool = False, **kwargs: Any) -> str
     except Exception as e:
         if not suppress_errors:
             print(f"[Shell Exception] {e}", file=sys.stderr)
+        return None
+
+def parse_json_response(result: str | None) -> Any | None:
+    """
+    Attempts to parse a JSON object from a string, handling common issues like
+    markdown code blocks and partial JSON.
+    """
+    if not result:
+        return None
+
+    # 1. Strip markdown blocks
+    # Handles ```json ... ```, ``` ... ```, and even just ``` at the start/end
+    clean_result = re.sub(r'```(?:json)?', '', result).strip()
+    clean_result = clean_result.replace('```', '').strip()
+
+    # 2. Try direct load
+    try:
+        return json.loads(clean_result)
+    except json.JSONDecodeError:
+        # 3. Last ditch effort: Try to find everything between first { and last }
+        # or first [ and last ]
+        try:
+            match = re.search(r'(\{.*\}|\[.*\])', clean_result, re.DOTALL)
+            if match:
+                return json.loads(match.group(1))
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        
+        # 4. If all fails, print error and return None
+        print(f"[JSON Parse Error] Failed to parse: {str(result)[:100]}...", file=sys.stderr)
         return None
 
 def get_codebase_context() -> str:

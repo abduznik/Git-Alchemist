@@ -1,11 +1,12 @@
 import os
 import time
+import re
 from datetime import datetime
 from typing import Optional, Tuple
 from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
-from .utils import run_shell, check_gh_auth
+from .utils import run_shell, check_gh_auth, parse_json_response
 
 console = Console()
 
@@ -82,9 +83,14 @@ Constraint: Max 70 characters. No quotes. Start with a verb (e.g., 'fix:', 'feat
 """
         commit_msg = generate_content(prompt, mode=mode)
         if commit_msg:
-             commit_msg = commit_msg.strip().replace('"', '').replace("'", "")
+            # Basic cleanup for commit message: strip markdown blocks and quotes
+            commit_msg = re.sub(r'```(?:[a-zA-Z]+)?', '', commit_msg).strip()
+            commit_msg = commit_msg.replace('```', '').strip()
+            commit_msg = commit_msg.strip().replace('"', '').replace("'", "")
+            # Ensure it's a single line if possible or just handle newlines safely
+            commit_msg = commit_msg.split('\n')[0].strip()
         else:
-             commit_msg = f"wip: auto-commit changes {timestamp}"
+            commit_msg = f"wip: auto-commit changes {timestamp}"
 
     # Commit
     run_shell(f'git commit -m "{commit_msg}"')
@@ -163,31 +169,16 @@ Example Output:
         return
 
     try:
-        import json
-        clean_json = result.replace("```json", "").replace("```", "").strip()
-        
-        # Try parsing JSON first
-        try:
-            pr_data = json.loads(clean_json)
-        except json.JSONDecodeError:
-            # Fallback: Parse "Title: ... Body: ..." format
-            import re
-            title_match = re.search(r"Title:\s*(.+)", clean_json, re.IGNORECASE)
-            # Body is everything after "Body:"
-            body_match = re.search(r"Body:\s*(.+)", clean_json, re.IGNORECASE | re.DOTALL)
-            
-            if title_match and body_match:
-                pr_data = {
-                    "title": title_match.group(1).strip(),
-                    "body": body_match.group(1).strip()
-                }
+        pr_data = parse_json_response(result)
+        if not pr_data or not isinstance(pr_data, dict):
+            # Fallback: Maybe the AI just gave us the text directly
+            clean_text = re.sub(r'```(?:[a-zA-Z]+)?', '', result).strip()
+            clean_text = clean_text.replace('```', '').strip()
+            lines = clean_text.split('\n', 1)
+            if len(lines) >= 2:
+                pr_data = {"title": lines[0].strip(), "body": lines[1].strip()}
             else:
-                # "Hail Mary" fallback: First line is title, rest is body
-                lines = clean_json.split('\n', 1)
-                if len(lines) >= 2:
-                    pr_data = {"title": lines[0].strip(), "body": lines[1].strip()}
-                else:
-                    pr_data = {"title": lines[0].strip(), "body": "Automated PR."}
+                pr_data = {"title": lines[0].strip(), "body": clean_text[:100]}
         
         title = pr_data.get("title", "AI PR Update")
         body = pr_data.get("body", "Automated PR created by Git-Alchemist.")
