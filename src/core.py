@@ -1,10 +1,13 @@
 import os
 import sys
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 from rich.console import Console
-from typing import Any
+from typing import Any, List, Optional
+from dataclasses import dataclass
+import requests
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from .env import validate_environment
 
 console = Console()
 
@@ -28,7 +31,19 @@ SAFE_TOKEN_LIMIT_SMART = 230000
 # Heuristic: ~4 characters per token
 CHARS_PER_TOKEN = 4
 
-from .env import validate_environment
+@dataclass
+class GenerationConfig:
+    timeout: int = 60
+    api_version: str = "v1beta"
+
+def validate_prompt(prompt: str) -> None:
+    """Basic validation for the prompt."""
+    if not prompt or not prompt.strip():
+        raise ValueError("Prompt cannot be empty.")
+
+def get_gemini_client() -> str:
+    """Returns the validated API key."""
+    return validate_environment()
 
 def estimate_tokens(text: str) -> int:
     """
@@ -45,33 +60,44 @@ def split_context(context: str, limit: int) -> list[str]:
     chunk_size = limit * CHARS_PER_TOKEN
     return [context[i:i+chunk_size] for i in range(0, len(context), chunk_size)]
 
-def get_gemini_client() -> Any:
-    return validate_environment()
-
-import requests
-
 def generate_with_fallback(
     api_key: str,
     prompt: str,
     models: list[str],
     silent: bool = False,
+    config: GenerationConfig = GenerationConfig()
 ) -> str | None:
     """
     Helper to try a list of models in order using direct API calls.
+    Uses headers for the API key to avoid URL exposure.
     """
+    try:
+        validate_prompt(prompt)
+    except ValueError as e:
+        if not silent:
+            console.print(f"[red]Prompt validation error:[/red] {e}")
+        return None
+    
     for model_name in models:
         try:
             if not silent:
                 console.print(f"[gray]Attempting with {model_name}...[/gray]")
             
-            # Use v1beta for better compatibility with newer models
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-            headers = {'Content-Type': 'application/json'}
+            url = f"https://generativelanguage.googleapis.com/{config.api_version}/models/{model_name}:generateContent"
+            headers = {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': api_key
+            }
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}]
             }
             
-            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            response = requests.post(
+                url, 
+                headers=headers, 
+                json=payload, 
+                timeout=config.timeout
+            )
             response.raise_for_status()
             data = response.json()
             
@@ -79,16 +105,28 @@ def generate_with_fallback(
                 text = data['candidates'][0]['content']['parts'][0]['text']
                 return text
                 
-        except Exception as e:
-            err_msg = str(e)
-            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+        except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code
+            if status_code in [429, 503]:
                 if not silent:
-                    console.print(f"[yellow]Quota/TPM hit for {model_name}. Trying next...[/yellow]")
+                    console.print(f"[yellow]Model {model_name} busy or quota hit ({status_code}). Trying next...[/yellow]")
                 continue
             else:
                 if not silent:
-                    console.print(f"[red]Error with {model_name}:[/red] {err_msg}")
+                    console.print(f"[red]HTTP Error with {model_name} ({status_code}):[/red] {e}")
                 continue
+        except requests.exceptions.Timeout:
+            if not silent:
+                console.print(f"[yellow]Timeout for {model_name} after {config.timeout}s. Trying next...[/yellow]")
+            continue
+        except requests.exceptions.RequestException as e:
+            if not silent:
+                console.print(f"[red]Request Error with {model_name}:[/red] {e}")
+            continue
+        except (KeyError, IndexError):
+            if not silent:
+                console.print(f"[red]Format Error in response from {model_name}[/red]")
+            continue
                 
     if not silent:
         console.print("[bold red]Critical:[/bold red] All models exhausted or failed.")
@@ -121,10 +159,20 @@ def generate_content(prompt: str, mode: str = "fast", context: str | None = None
                 batch = chunks[i:i + batch_size]
                 futures = []
                 
-                console.print(f"[cyan]Processing batch {i//batch_size + 1} ({len(batch)} chunks)...[/cyan]")
+                console_print(f"[cyan]Processing batch {i//batch_size + 1} ({len(batch)} chunks)...[/cyan]")
                 
                 for chunk in batch:
-                    futures.append(executor.submit(process_chunk, api_key, chunk, prompt, models))
+                    chunk_prompt = f"""
+    Analyze the following part of the codebase context based on this instruction:
+    "{prompt}"    
+    PARTIAL CONTEXT:
+    '''
+    {chunk}
+    '''
+    
+    Extract any relevant information found in this chunk. If nothing is relevant, say "Nothing relevant".
+    """
+                    futures.append(executor.submit(generate_with_fallback, api_key, chunk_prompt, models, silent=True))
                 
                 for future in as_completed(futures):
                     try:
@@ -136,8 +184,7 @@ def generate_content(prompt: str, mode: str = "fast", context: str | None = None
 
                 # Delay between batches to respect rate limits (if not the last batch)
                 if i + batch_size < len(chunks):
-                    console.print("[gray]Pausing briefly for rate limits...[/gray]")
-                    time.sleep(2)
+                    time.sleep(1)
 
         # REDUCE STEP
         if not summaries:
@@ -153,26 +200,8 @@ def generate_content(prompt: str, mode: str = "fast", context: str | None = None
         Based on these findings, answer the original user request:
         {prompt}
         """
-        result = generate_with_fallback(api_key, final_prompt, models)
-        return result or "No relevant information found in the provided context."
+        return generate_with_fallback(api_key, final_prompt, models) or "No relevant information found in the provided context."
 
     # 2. Standard Generation
     full_prompt = f"{prompt}\n\nCONTEXT:\n{context}" if context else prompt
-    result = generate_with_fallback(api_key, full_prompt, models)
-    return result or "No relevant information found in the provived context."
-
-def process_chunk(api_key: str, chunk: str, prompt: str, models: list[str]) -> str | None:
-    """
-    Worker function to process a single chunk.
-    """
-    chunk_prompt = f"""
-    Analyze the following part of the codebase context based on this instruction:
-    "{prompt}"    
-    PARTIAL CONTEXT:
-    '''
-    {chunk}
-    '''
-    
-    Extract any relevant information found in this chunk. If nothing is relevant, say "Nothing relevant".
-    """
-    return generate_with_fallback(api_key, chunk_prompt, models, silent=True)
+    return generate_with_fallback(api_key, full_prompt, models) or "No relevant information found in the provided context."
