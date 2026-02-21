@@ -21,7 +21,20 @@ def fetch_repos(username: str) -> List[RepoMetadata]:
     cmd = 'gh repo list --visibility=public --limit 100 --json name,description,url,isPrivate,isArchived,stargazerCount'
     try:
         output = run_shell(cmd)
-        return json.loads(output)
+        if not output:
+            return []
+        raw_data = json.loads(output)
+        if not isinstance(raw_data, list):
+            console.print("[red]Unexpected JSON structure from gh CLI[/red]")
+            return []
+        
+        repos = []
+        for item in raw_data:
+            try:
+                repos.append(RepoMetadata.from_dict(item))
+            except Exception as e:
+                console.print(f"[yellow]Skipping malformed repo data: {e}[/yellow]")
+        return repos
     except Exception as e:
         console.print(f"[red]Failed to fetch repos:[/red] {e}")
         return []
@@ -41,19 +54,19 @@ def filter_repos(
     junk_patterns = ["test", "export", "WPy64", "PROFILE_DRAFT.md", "temp", "awesome-"]
     
     for r in repos:
-        name = r['name']
+        name = r.name
         
         # Basic filters
         if name == username: continue
-        if r.get('isPrivate'): continue
-        if r.get('isArchived'): continue
+        if r.isPrivate: continue
+        if r.isArchived: continue
         if any(p in name.lower() for p in junk_patterns): continue
         if name.endswith(".exe"): continue
         
         # Strategy filter
         if strategy == "SMART_UPDATE":
             # Check if name or URL exists in current profile content
-            if name in existing_content or r['url'] in existing_content:
+            if name in existing_content or r.url in existing_content:
                 continue
         
         candidates.append(r)
@@ -100,7 +113,7 @@ def generate_profile(
         return
 
     # Prompt Engineering
-    candidates_str = "\n".join([f"- Name: {r['name']}\n  Desc: {r['description'] or ''}\n  URL: {r['url']}" for r in candidates])
+    candidates_str = "\n".join([f"- Name: {r.name}\n  Desc: {r.description or ''}\n  URL: {r.url}" for r in candidates])
     
     prompt = ""
     full_context = ""
