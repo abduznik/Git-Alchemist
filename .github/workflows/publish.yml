@@ -76,6 +76,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "ci: bump version to ${{ github.ref_name }}"
-            # Push back to main
-            git push origin HEAD:main
+            # Push back to master
+            git push origin HEAD:master
           fi
