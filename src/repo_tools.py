@@ -19,22 +19,15 @@ def optimize_topics(user: Optional[str] = None, mode: Literal["fast", "smart"] =
 
     console.print(f"[cyan]Optimizing topics for {username} ({mode} mode)...[/cyan]")
     repos_raw = run_shell('gh repo list --visibility=public --limit 100 --json name,description,repositoryTopics')
-    if not repos_raw:
+    if repos_raw is None:
+        console.print("[red]Failed to fetch repositories: gh command returned None[/red]")
         return
-    try:
-        raw_data = json.loads(repos_raw)
-        if not isinstance(raw_data, list):
-            console.print("[red]Unexpected JSON structure from gh CLI[/red]")
-            return
-        repos: List[RepoMetadata] = []
-        for item in raw_data:
-            try:
-                repos.append(RepoMetadata.from_dict(item))
-            except Exception as e:
-                console.print(f"[yellow]Skipping malformed repo data: {e}[/yellow]")
-    except Exception as e:
-        console.print(f"[red]Error parsing repository data: {e}[/red]")
-        return
+    
+    raw_data = json.loads(repos_raw)
+    if not isinstance(raw_data, list):
+        raise ValueError("Unexpected JSON structure from gh CLI: expected a list")
+    
+    repos: List[RepoMetadata] = [RepoMetadata.from_dict(item) for item in raw_data]
 
     count = 0
     for repo in repos:
@@ -94,22 +87,15 @@ def generate_descriptions(user: Optional[str] = None, mode: Literal["fast", "sma
 
     console.print(f"[cyan]Generating descriptions for {username} ({mode} mode)...[/cyan]")
     repos_raw = run_shell('gh repo list --visibility=public --limit 100 --json name,description')
-    if not repos_raw:
+    if repos_raw is None:
+        console.print("[red]Failed to fetch repositories: gh command returned None[/red]")
         return
-    try:
-        raw_data = json.loads(repos_raw)
-        if not isinstance(raw_data, list):
-            console.print("[red]Unexpected JSON structure from gh CLI[/red]")
-            return
-        repos: List[RepoMetadata] = []
-        for item in raw_data:
-            try:
-                repos.append(RepoMetadata.from_dict(item))
-            except Exception as e:
-                console.print(f"[yellow]Skipping malformed repo data: {e}[/yellow]")
-    except Exception as e:
-        console.print(f"[red]Error parsing repository data: {e}[/red]")
-        return
+
+    raw_data = json.loads(repos_raw)
+    if not isinstance(raw_data, list):
+        raise ValueError("Unexpected JSON structure from gh CLI: expected a list")
+        
+    repos: List[RepoMetadata] = [RepoMetadata.from_dict(item) for item in raw_data]
 
     count = 0
     for repo in repos:

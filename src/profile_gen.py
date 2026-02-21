@@ -21,22 +21,17 @@ def fetch_repos(username: str) -> List[RepoMetadata]:
     cmd = 'gh repo list --visibility=public --limit 100 --json name,description,url,isPrivate,isArchived,stargazerCount'
     try:
         output = run_shell(cmd)
-        if not output:
+        if output is None:
+            console.print("[red]Failed to fetch repositories: gh command returned None[/red]")
             return []
+            
         raw_data = json.loads(output)
         if not isinstance(raw_data, list):
-            console.print("[red]Unexpected JSON structure from gh CLI[/red]")
-            return []
+            raise ValueError("Unexpected JSON structure from gh CLI: expected a list")
         
-        repos = []
-        for item in raw_data:
-            try:
-                repos.append(RepoMetadata.from_dict(item))
-            except Exception as e:
-                console.print(f"[yellow]Skipping malformed repo data: {e}[/yellow]")
-        return repos
+        return [RepoMetadata.from_dict(item) for item in raw_data]
     except Exception as e:
-        console.print(f"[red]Failed to fetch repos:[/red] {e}")
+        console.print(f"[red]Error fetching or parsing repos:[/red] {e}")
         return []
 
 def filter_repos(

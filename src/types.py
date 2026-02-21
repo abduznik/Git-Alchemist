@@ -1,5 +1,5 @@
 from typing import List, Optional, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
 class Topic:
@@ -8,10 +8,10 @@ class Topic:
     @classmethod
     def from_dict(cls, data: Any) -> 'Topic':
         if not isinstance(data, dict):
-            raise TypeError("Topic must be a dictionary")
+            raise TypeError("Topic must be a dict")
         name = data.get('name')
         if not isinstance(name, str):
-            raise TypeError("Topic 'name' must be a string")
+            raise TypeError("Topic name must be a string")
         return cls(name=name)
 
 @dataclass
@@ -27,33 +27,39 @@ class RepoMetadata:
     @classmethod
     def from_dict(cls, data: Any) -> 'RepoMetadata':
         if not isinstance(data, dict):
-            raise TypeError("RepoMetadata must be a dictionary")
+            raise TypeError("RepoMetadata data must be a dictionary")
         
         name = data.get('name')
         if not isinstance(name, str) or not name:
-            raise ValueError("Repository must have a valid 'name'")
+            raise ValueError("Repository must have a valid 'name' string")
             
         description = data.get('description')
         if description is not None and not isinstance(description, str):
-            description = str(description)
+            raise TypeError("Repository 'description' must be a string if provided")
 
-        url = data.get('url', '')
-        isPrivate = bool(data.get('isPrivate', False))
-        isArchived = bool(data.get('isArchived', False))
+        url = data.get('url')
+        if url is not None and not isinstance(url, str):
+             raise TypeError("Repository 'url' must be a string if provided")
+        url = url or ''
+
+        isPrivate = data.get('isPrivate', False)
+        if not isinstance(isPrivate, bool):
+             raise TypeError("Repository 'isPrivate' must be a boolean")
+
+        isArchived = data.get('isArchived', False)
+        if not isinstance(isArchived, bool):
+             raise TypeError("Repository 'isArchived' must be a boolean")
         
         stargazerCount = data.get('stargazerCount', 0)
-        if isinstance(stargazerCount, str) and stargazerCount.isdigit():
-            stargazerCount = int(stargazerCount)
-        elif not isinstance(stargazerCount, int):
-            stargazerCount = 0
+        if not isinstance(stargazerCount, int):
+            raise TypeError("Repository 'stargazerCount' must be an integer")
 
         raw_topics = data.get('repositoryTopics')
         topics = None
         if raw_topics is not None:
-            if isinstance(raw_topics, list):
-                topics = [Topic.from_dict(t) for t in raw_topics if isinstance(t, dict)]
-            else:
-                topics = []
+            if not isinstance(raw_topics, list):
+                raise TypeError("Repository 'repositoryTopics' must be a list if provided")
+            topics = [Topic.from_dict(t) for t in raw_topics]
 
         return cls(
             name=name,
