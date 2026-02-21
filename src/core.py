@@ -2,7 +2,6 @@ import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from google import genai
 from dotenv import load_dotenv
 from rich.console import Console
 from typing import Any
@@ -29,13 +28,7 @@ SAFE_TOKEN_LIMIT_SMART = 230000
 # Heuristic: ~4 characters per token
 CHARS_PER_TOKEN = 4
 
-def get_gemini_client() -> Any:
-    load_dotenv()
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        console.print("[bold red]Error:[/bold red] GEMINI_API_KEY not found.")
-        sys.exit(1)
-    return genai.Client(api_key=api_key, http_options={'api_version':'v1alpha'})
+from .env import validate_environment
 
 def estimate_tokens(text: str) -> int:
     """
@@ -52,27 +45,60 @@ def split_context(context: str, limit: int) -> list[str]:
     chunk_size = limit * CHARS_PER_TOKEN
     return [context[i:i+chunk_size] for i in range(0, len(context), chunk_size)]
 
-def process_chunk(client: Any, chunk: str, prompt: str, models: list[str]) -> str | None:
+def get_gemini_client() -> Any:
+    return validate_environment()
+
+import requests
+
+def generate_with_fallback(
+    api_key: str,
+    prompt: str,
+    models: list[str],
+    silent: bool = False,
+) -> str | None:
     """
-    Worker function to process a single chunk.
+    Helper to try a list of models in order using direct API calls.
     """
-    chunk_prompt = f"""
-    Analyze the following part of the codebase context based on this instruction:
-    "{prompt}"    
-    PARTIAL CONTEXT:
-    '''
-    {chunk}
-    '''
-    
-    Extract any relevant information found in this chunk. If nothing is relevant, say "Nothing relevant".
-    """
-    return generate_with_fallback(client, chunk_prompt, models, silent=True)
+    for model_name in models:
+        try:
+            if not silent:
+                console.print(f"[gray]Attempting with {model_name}...[/gray]")
+            
+            # Use v1beta for better compatibility with newer models
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            headers = {'Content-Type': 'application/json'}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}]
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+            data = response.json()
+            
+            if 'candidates' in data and data['candidates']:
+                text = data['candidates'][0]['content']['parts'][0]['text']
+                return text
+                
+        except Exception as e:
+            err_msg = str(e)
+            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                if not silent:
+                    console.print(f"[yellow]Quota/TPM hit for {model_name}. Trying next...[/yellow]")
+                continue
+            else:
+                if not silent:
+                    console.print(f"[red]Error with {model_name}:[/red] {err_msg}")
+                continue
+                
+    if not silent:
+        console.print("[bold red]Critical:[/bold red] All models exhausted or failed.")
+    return None
 
 def generate_content(prompt: str, mode: str = "fast", context: str | None = None) -> str:
     """
     Generates content with strict model separation and parallel smart chunking.
     """
-    client = get_gemini_client()
+    api_key = get_gemini_client()
     # Strict separation: Fast uses ONLY Gemma, Smart uses ONLY Gemini
     models = SMART_MODELS if mode == "smart" else FAST_MODELS
     
@@ -98,7 +124,7 @@ def generate_content(prompt: str, mode: str = "fast", context: str | None = None
                 console.print(f"[cyan]Processing batch {i//batch_size + 1} ({len(batch)} chunks)...[/cyan]")
                 
                 for chunk in batch:
-                    futures.append(executor.submit(process_chunk, client, chunk, prompt, models))
+                    futures.append(executor.submit(process_chunk, api_key, chunk, prompt, models))
                 
                 for future in as_completed(futures):
                     try:
@@ -127,44 +153,26 @@ def generate_content(prompt: str, mode: str = "fast", context: str | None = None
         Based on these findings, answer the original user request:
         {prompt}
         """
-        result = generate_with_fallback(client, final_prompt, models)
+        result = generate_with_fallback(api_key, final_prompt, models)
         return result or "No relevant information found in the provided context."
 
     # 2. Standard Generation
     full_prompt = f"{prompt}\n\nCONTEXT:\n{context}" if context else prompt
-    result = generate_with_fallback(client, full_prompt, models)
+    result = generate_with_fallback(api_key, full_prompt, models)
     return result or "No relevant information found in the provived context."
 
-def generate_with_fallback(
-    client: Any,
-    prompt: str,
-    models: list[str],
-    silent: bool = False,
-) -> str | None:
+def process_chunk(api_key: str, chunk: str, prompt: str, models: list[str]) -> str | None:
     """
-    Helper to try a list of models in order.
+    Worker function to process a single chunk.
     """
-    for model_name in models:
-        try:
-            if not silent:
-                console.print(f"[gray]Attempting with {model_name}...[/gray]")
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt
-            )
-            if response and response.text:
-                return response.text
-        except Exception as e:
-            err_msg = str(e)
-            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                if not silent:
-                    console.print(f"[yellow]Quota/TPM hit for {model_name}. Trying next...[/yellow]")
-                continue
-            else:
-                if not silent:
-                    console.print(f"[red]Error with {model_name}:[/red] {err_msg}")
-                continue
-                
-    if not silent:
-        console.print("[bold red]Critical:[/bold red] All models exhausted or failed.")
-    return None
+    chunk_prompt = f"""
+    Analyze the following part of the codebase context based on this instruction:
+    "{prompt}"    
+    PARTIAL CONTEXT:
+    '''
+    {chunk}
+    '''
+    
+    Extract any relevant information found in this chunk. If nothing is relevant, say "Nothing relevant".
+    """
+    return generate_with_fallback(api_key, chunk_prompt, models, silent=True)

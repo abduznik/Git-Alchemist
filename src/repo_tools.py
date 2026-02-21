@@ -3,7 +3,8 @@ import time
 from typing import Optional, Literal, List
 from rich.console import Console
 from .core import generate_content
-from .utils import run_shell, check_gh_auth
+from .utils import run_shell
+from .env import validate_gh_auth
 from .types import RepoMetadata
 
 console = Console()
@@ -12,9 +13,8 @@ def optimize_topics(user: Optional[str] = None, mode: Literal["fast", "smart"] =
     """
     Analyzes repositories and adds relevant topics using Gemini.
     """
-    username = user or check_gh_auth()
+    username = user or validate_gh_auth()
     if not username:
-        console.print("[red]Not authenticated with gh CLI.[/red]")
         return
 
     console.print(f"[cyan]Optimizing topics for {username} ({mode} mode)...[/cyan]")
@@ -82,7 +82,7 @@ def generate_descriptions(user: Optional[str] = None, mode: Literal["fast", "sma
     """
     Generates descriptions for repositories that are missing them.
     """
-    username = user or check_gh_auth()
+    username = user or validate_gh_auth()
     if not username: return
 
     console.print(f"[cyan]Generating descriptions for {username} ({mode} mode)...[/cyan]")

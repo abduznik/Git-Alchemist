@@ -6,7 +6,8 @@ from typing import Optional, Tuple
 from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
-from .utils import run_shell, check_gh_auth, parse_json_response
+from .utils import run_shell, parse_json_response
+from .env import validate_gh_auth
 
 console = Console()
 
@@ -102,9 +103,8 @@ def forge_pr(mode: str = "fast") -> None:
     """
     Analyzes changes (committed or uncommitted) and opens a professional PR on GitHub.
     """
-    username = check_gh_auth()
+    username = validate_gh_auth()
     if not username:
-        console.print("[red]Not authenticated with gh CLI.[/red]")
         return
 
     # Handle uncommitted changes first
