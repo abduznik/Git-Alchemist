@@ -9,10 +9,11 @@ from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
 from .utils import run_shell, check_gh_auth, get_user_email
+from .types import RepoMetadata
 
 console = Console()
 
-def fetch_repos(username: str) -> List[Dict[str, Any]]:
+def fetch_repos(username: str) -> List[RepoMetadata]:
     """
     Fetches public repositories for the user.
     """
@@ -26,11 +27,11 @@ def fetch_repos(username: str) -> List[Dict[str, Any]]:
         return []
 
 def filter_repos(
-    repos: List[Dict[str, Any]], 
+    repos: List[RepoMetadata], 
     username: str, 
     strategy: Literal["FULL_GEN", "SMART_UPDATE"]="FULL_GEN", 
     existing_content: str = ""
-) -> List[Dict[str, Any]]:
+) -> List[RepoMetadata]:
     """
     Filters out junk, private, archived, and irrelevant repos (like Awesome lists).
     """

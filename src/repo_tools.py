@@ -1,9 +1,10 @@
 import json
 import time
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from rich.console import Console
 from .core import generate_content
 from .utils import run_shell, check_gh_auth
+from .types import RepoMetadata
 
 console = Console()
 
@@ -18,7 +19,7 @@ def optimize_topics(user: Optional[str] = None, mode: Literal["fast", "smart"] =
 
     console.print(f"[cyan]Optimizing topics for {username} ({mode} mode)...[/cyan]")
     repos_raw = run_shell('gh repo list --visibility=public --limit 100 --json name,description,repositoryTopics')
-    repos = json.loads(repos_raw)
+    repos: List[RepoMetadata] = json.loads(repos_raw)
 
     count = 0
     for repo in repos:
@@ -75,7 +76,7 @@ def generate_descriptions(user: Optional[str] = None, mode: Literal["fast", "sma
 
     console.print(f"[cyan]Generating descriptions for {username} ({mode} mode)...[/cyan]")
     repos_raw = run_shell('gh repo list --visibility=public --limit 100 --json name,description')
-    repos = json.loads(repos_raw)
+    repos: List[RepoMetadata] = json.loads(repos_raw)
 
     count = 0
     for repo in repos:
