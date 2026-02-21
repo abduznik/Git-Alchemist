@@ -1,9 +1,10 @@
 import json
 import time
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 from rich.console import Console
 from .core import generate_content
 from .utils import run_shell, check_gh_auth
+from .types import RepoMetadata
 
 console = Console()
 
@@ -18,19 +19,27 @@ def optimize_topics(user: Optional[str] = None, mode: Literal["fast", "smart"] =
 
     console.print(f"[cyan]Optimizing topics for {username} ({mode} mode)...[/cyan]")
     repos_raw = run_shell('gh repo list --visibility=public --limit 100 --json name,description,repositoryTopics')
-    repos = json.loads(repos_raw)
+    if repos_raw is None:
+        console.print("[red]Failed to fetch repositories: gh command returned None[/red]")
+        return
+    
+    raw_data = json.loads(repos_raw)
+    if not isinstance(raw_data, list):
+        raise ValueError("Unexpected JSON structure from gh CLI: expected a list")
+    
+    repos: List[RepoMetadata] = [RepoMetadata.from_dict(item) for item in raw_data]
 
     count = 0
     for repo in repos:
-        name = repo['name']
-        desc = repo.get('description') or "No description provided"
+        name = repo.name
+        desc = repo.description or "No description provided"
         
         # Safe access to topics
-        raw_topics = repo.get('repositoryTopics')
+        raw_topics = repo.repositoryTopics
         if raw_topics is None:
             existing = []
         else:
-            existing = [t['name'] for t in raw_topics]
+            existing = [t.name for t in raw_topics]
         
         if len(existing) >= 5:
             continue
@@ -58,8 +67,11 @@ Output Example: ["python", "automation"]
             if to_add:
                 tag_str = ",".join(to_add)
                 console.print(f"  [green]Adding tags:[/green] {tag_str}")
-                run_shell(f'gh repo edit {username}/{name} --add-topic "{tag_str}"')
-                count += 1
+                res = run_shell(f'gh repo edit {username}/{name} --add-topic "{tag_str}"')
+                if res is None:
+                    console.print(f"  [red]Failed to add topics to {name}[/red]")
+                else:
+                    count += 1
                 time.sleep(0.5)
         except json.JSONDecodeError:
             console.print(f"  [red]Failed to parse topics for {name}[/red]")
@@ -75,13 +87,21 @@ def generate_descriptions(user: Optional[str] = None, mode: Literal["fast", "sma
 
     console.print(f"[cyan]Generating descriptions for {username} ({mode} mode)...[/cyan]")
     repos_raw = run_shell('gh repo list --visibility=public --limit 100 --json name,description')
-    repos = json.loads(repos_raw)
+    if repos_raw is None:
+        console.print("[red]Failed to fetch repositories: gh command returned None[/red]")
+        return
+
+    raw_data = json.loads(repos_raw)
+    if not isinstance(raw_data, list):
+        raise ValueError("Unexpected JSON structure from gh CLI: expected a list")
+        
+    repos: List[RepoMetadata] = [RepoMetadata.from_dict(item) for item in raw_data]
 
     count = 0
     for repo in repos:
-        name = repo['name']
+        name = repo.name
         if name == username: continue # Skip profile repo
-        if repo.get('description'): continue # Skip if already has desc
+        if repo.description: continue # Skip if already has desc
 
         console.print(f"[white]Analyzing {name}...[/white]")
         
@@ -106,8 +126,11 @@ Output ONLY the description. No quotes.
         if len(new_desc) > 200: new_desc = new_desc[:197] + "..."
 
         console.print(f"  [green]New Desc:[/green] {new_desc}")
-        run_shell(f'gh repo edit {username}/{name} --description "{new_desc}"')
-        count += 1
+        res = run_shell(f'gh repo edit {username}/{name} --description "{new_desc}"')
+        if res is None:
+             console.print(f"  [red]Failed to update description for {name}[/red]")
+        else:
+             count += 1
         time.sleep(0.5)
 
     console.print(f"[cyan]Done! Updated {count} descriptions.[/cyan]")

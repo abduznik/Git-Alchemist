@@ -9,10 +9,11 @@ from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
 from .utils import run_shell, check_gh_auth, get_user_email
+from .types import RepoMetadata
 
 console = Console()
 
-def fetch_repos(username: str) -> List[Dict[str, Any]]:
+def fetch_repos(username: str) -> List[RepoMetadata]:
     """
     Fetches public repositories for the user.
     """
@@ -20,17 +21,25 @@ def fetch_repos(username: str) -> List[Dict[str, Any]]:
     cmd = 'gh repo list --visibility=public --limit 100 --json name,description,url,isPrivate,isArchived,stargazerCount'
     try:
         output = run_shell(cmd)
-        return json.loads(output)
+        if output is None:
+            console.print("[red]Failed to fetch repositories: gh command returned None[/red]")
+            return []
+            
+        raw_data = json.loads(output)
+        if not isinstance(raw_data, list):
+            raise ValueError("Unexpected JSON structure from gh CLI: expected a list")
+        
+        return [RepoMetadata.from_dict(item) for item in raw_data]
     except Exception as e:
-        console.print(f"[red]Failed to fetch repos:[/red] {e}")
+        console.print(f"[red]Error fetching or parsing repos:[/red] {e}")
         return []
 
 def filter_repos(
-    repos: List[Dict[str, Any]], 
+    repos: List[RepoMetadata], 
     username: str, 
     strategy: Literal["FULL_GEN", "SMART_UPDATE"]="FULL_GEN", 
     existing_content: str = ""
-) -> List[Dict[str, Any]]:
+) -> List[RepoMetadata]:
     """
     Filters out junk, private, archived, and irrelevant repos (like Awesome lists).
     """
@@ -40,19 +49,19 @@ def filter_repos(
     junk_patterns = ["test", "export", "WPy64", "PROFILE_DRAFT.md", "temp", "awesome-"]
     
     for r in repos:
-        name = r['name']
+        name = r.name
         
         # Basic filters
         if name == username: continue
-        if r.get('isPrivate'): continue
-        if r.get('isArchived'): continue
+        if r.isPrivate: continue
+        if r.isArchived: continue
         if any(p in name.lower() for p in junk_patterns): continue
         if name.endswith(".exe"): continue
         
         # Strategy filter
         if strategy == "SMART_UPDATE":
             # Check if name or URL exists in current profile content
-            if name in existing_content or r['url'] in existing_content:
+            if name in existing_content or r.url in existing_content:
                 continue
         
         candidates.append(r)
@@ -99,7 +108,7 @@ def generate_profile(
         return
 
     # Prompt Engineering
-    candidates_str = "\n".join([f"- Name: {r['name']}\n  Desc: {r['description'] or ''}\n  URL: {r['url']}" for r in candidates])
+    candidates_str = "\n".join([f"- Name: {r.name}\n  Desc: {r.description or ''}\n  URL: {r.url}" for r in candidates])
     
     prompt = ""
     full_context = ""
