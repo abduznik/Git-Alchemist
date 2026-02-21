@@ -1,0 +1,81 @@
+name: Publish to PyPI and GitHub Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  pypi-publish:
+    name: Update Version, Build & Publish
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # For PyPI trusted publishing
+      contents: write  # REQUIRED: To commit version bump & upload release assets
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Update Version in Files
+        id: bump_version
+        run: |
+          # Extract version from tag
+          TAG_NAME=${{ github.ref_name }}
+          VERSION=${TAG_NAME#v}
+          echo "Target Version: $VERSION"
+          
+          # Run the python script
+          python3 scripts/update_version.py "$VERSION"
+          
+          # Debug
+          echo "--- pyproject.toml check ---"
+          grep "version" pyproject.toml
+          echo "----------------------------"
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Publish distribution 📦 to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          package_dir: dist/
+          # Using OIDC/Trusted Publishing is recommended, but keeping password for compatibility if needed.
+          # If using OIDC, usually password is not needed if the repo is trusted on PyPI.
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Upload Release Assets to GitHub
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and Push Version Bump
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # pyproject.toml is the source of truth here
+          git add pyproject.toml
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "ci: bump version to ${{ github.ref_name }}"
+            # Push back to main
+            git push origin HEAD:main
+          fi
