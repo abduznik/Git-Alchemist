@@ -1,17 +1,22 @@
 import os
+import shlex
 import shutil
 import subprocess
 import sys
 import json
 import re
-from typing import Any 
+from typing import Any
 
 def run_shell(command: str, suppress_errors: bool = False, **kwargs: Any) -> str | None:
     """
     Runs a shell command and returns the output.
     Accepts extra kwargs (like check=False) to pass to subprocess.run if needed.
     Forces UTF-8 encoding to avoid Windows CP1252 errors.
-    
+
+    Uses shlex.split() to tokenize the command string instead of shell=True,
+    which avoids shell injection vulnerabilities. If a command requires shell
+    features (pipes, redirects, globbing), pass use_shell=True explicitly.
+
     Args:
         command (str): The shell command to execute.
         suppress_errors (bool): If True, stderr will not be printed on failure.
@@ -20,9 +25,17 @@ def run_shell(command: str, suppress_errors: bool = False, **kwargs: Any) -> str
         # Force UTF-8 encoding for input and output to handle special characters/emojis
         kwargs['encoding'] = 'utf-8'
         kwargs['errors'] = 'replace' # Replace invalid characters instead of crashing
-        
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, **kwargs)
-        
+
+        # Allow callers to opt into shell mode when needed (pipes, redirects, etc.)
+        use_shell = kwargs.pop('use_shell', False)
+
+        if use_shell:
+            cmd = command
+        else:
+            cmd = shlex.split(command, posix=(os.name != 'nt'))
+
+        result = subprocess.run(cmd, shell=use_shell, capture_output=True, text=True, **kwargs)
+
         if result.returncode != 0 and result.stderr and not suppress_errors:
              # Print error to stderr so the user can see it even if we return stdout
              print(f"[Shell Error] Command: {command}", file=sys.stderr)
