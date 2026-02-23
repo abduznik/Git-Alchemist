@@ -13,7 +13,7 @@ from .helper import run_helper
 
 console = Console()
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Git-Alchemist: AI-powered Git Operations")
     parser.add_argument("--smart", action="store_true", help="Use high-end Gemini Pro models (slower/lower quota)")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

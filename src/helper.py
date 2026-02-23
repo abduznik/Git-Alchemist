@@ -26,7 +26,7 @@ If the user asks how to do something that one of these commands solves, recommen
 If the user asks for coding help, debugging, or structuring advice, use the provided Codebase Context.
 """
 
-def run_helper(mode="fast"):
+def run_helper(mode: str = "fast") -> None:
     """
     Interactive helper that reads codebase context and answers user queries.
     """
