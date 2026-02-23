@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.prompt import Confirm
 from .core import generate_content
 from .utils import run_shell, check_gh_auth, get_user_email
-from .types import RepoMetadata
+from .models import RepoMetadata
 
 console = Console()
 

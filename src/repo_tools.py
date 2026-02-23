@@ -4,7 +4,7 @@ from typing import Optional, Literal, List
 from rich.console import Console
 from .core import generate_content
 from .utils import run_shell, check_gh_auth
-from .types import RepoMetadata
+from .models import RepoMetadata
 
 console = Console()
 

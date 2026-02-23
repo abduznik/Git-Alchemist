@@ -1,5 +1,5 @@
 import pytest
-from src.types import RepoMetadata, Topic
+from src.models import RepoMetadata, Topic
 
 def test_repometadata_valid_parsing():
     data = {
