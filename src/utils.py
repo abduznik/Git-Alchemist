@@ -30,7 +30,7 @@ def run_shell(command: str, suppress_errors: bool = False, **kwargs: Any) -> str
         use_shell = kwargs.pop('use_shell', False)
 
         if use_shell:
-            cmd = command
+            cmd: str | list[str] = command
         else:
             cmd = shlex.split(command, posix=(os.name != 'nt'))
 

@@ -69,7 +69,7 @@ def filter_repos(
     return candidates
 
 def generate_profile(
-    username: str, 
+    username: str | None,
     force: bool = False, 
     mode: Literal["fast", "smart"]="fast"
 ) -> None:
@@ -85,7 +85,7 @@ def generate_profile(
     console.print(f"[green]Authenticated as: {username}[/green]")
     
     # Discovery
-    current_content = ""
+    current_content: str | None = None
     strategy: Literal["FULL_GEN", "SMART_UPDATE"] = "FULL_GEN"
     
     try:
@@ -101,7 +101,7 @@ def generate_profile(
 
     # Fetch & Filter
     repos = fetch_repos(username)
-    candidates = filter_repos(repos, username, strategy, current_content)
+    candidates = filter_repos(repos, username, strategy, current_content or "")
     
     if not candidates:
         console.print("[green]No new repositories to add.[/green]")

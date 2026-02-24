@@ -1,5 +1,6 @@
 import argparse
 import sys
+from typing import Literal
 from rich.console import Console
 from .profile_gen import generate_profile
 from .architect import scaffold_project, fix_code, explain_code
@@ -69,7 +70,7 @@ def main() -> None:
         parser.print_help()
         return
 
-    mode = "smart" if args.smart else "fast"
+    mode: Literal["fast", "smart"] = "smart" if args.smart else "fast"
     
     if args.command == "profile":
         generate_profile(args.user, args.force, mode=mode)
