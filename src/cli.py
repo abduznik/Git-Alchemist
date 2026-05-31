@@ -12,6 +12,7 @@ from .committer import suggest_commits
 from .forge import forge_pr
 from .helper import run_helper
 
+Mode = Literal["fast", "smart"]
 console = Console()
 
 def main() -> None:
@@ -70,7 +71,11 @@ def main() -> None:
         parser.print_help()
         return
 
-    mode: Literal["fast", "smart"] = "smart" if args.smart else "fast"
+    mode: Mode
+    if args.smart:
+        mode = "smart"
+    else:
+        mode = "fast"
     
     if args.command == "profile":
         generate_profile(args.user, args.force, mode=mode)
