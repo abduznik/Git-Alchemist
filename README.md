@@ -1,5 +1,3 @@
-## Support This Project
-
 > **All projects made with passion** 💙
 
 Your support helps us continue developing and maintaining these projects. Consider sponsoring!
