@@ -1,3 +1,13 @@
+
+## Support This Project
+
+> **All projects made with passion** 💙
+
+Your support helps us continue developing and maintaining these projects. Consider sponsoring to help keep them alive!
+
+<iframe src="https://github.com/sponsors/abduznik/card" title="Sponsor abduznik" height="225" width="600" style="border: 0;"></iframe>
+
+
 # Git-Alchemist ⚗️
 
 **Git-Alchemist ⚗️** is a unified AI-powered CLI tool for automating GitHub repository management. It consolidates multiple technical utilities into a single, intelligent system powered by Google's Gemini 3 and Gemma 3 models.
